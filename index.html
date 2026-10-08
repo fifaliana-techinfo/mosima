@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#1769e0">
+<title>Feo Lasa Soratra</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --primary:#1769e0;--primary2:#0d47a1;--bg:#f4f7fb;--card:#fff;
+  --text:#172033;--muted:#64748b;--border:#d9e2ef;--danger:#d32f2f;
+}
+html,body{min-height:100%;font-family:Arial,sans-serif;background:var(--bg);color:var(--text)}
+body.dark{--bg:#0f172a;--card:#1e293b;--text:#f8fafc;--muted:#cbd5e1;--border:#334155}
+body{padding-bottom:env(safe-area-inset-bottom)}
+header{position:sticky;top:0;z-index:10;background:var(--primary);color:#fff;padding:12px max(12px,env(safe-area-inset-left)) 14px}
+header h2{text-align:center;font-size:20px;margin-bottom:10px}
+.menu{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;max-width:900px;margin:auto}
+button,select{font:inherit}
+button{border:0;border-radius:12px;padding:12px 14px;cursor:pointer;touch-action:manipulation;min-height:46px}
+.menu button{background:rgba(255,255,255,.18);color:#fff;font-weight:700}
+.menu button.active{background:#fff;color:var(--primary)}
+.section{display:none;width:min(100%,1000px);margin:auto;padding:18px 14px 30px}
+.activeSection{display:block}
+.card{background:var(--card);border:1px solid var(--border);border-radius:18px;padding:18px;box-shadow:0 5px 18px rgba(0,0,0,.07)}
+h1{font-size:clamp(22px,6vw,34px);line-height:1.2;margin-bottom:14px}
+.subtitle{color:var(--muted);margin-bottom:16px;line-height:1.5}
+textarea{
+ width:100%;min-height:180px;resize:vertical;border:2px solid var(--border);
+ border-radius:14px;padding:14px;font-size:18px;line-height:1.5;outline:none;
+ background:var(--card);color:var(--text)
+}
+textarea:focus{border-color:var(--primary)}
+.controls{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-top:12px}
+.controls button{font-weight:700}
+.primary{background:var(--primary);color:#fff}
+.secondary{background:#e8eef8;color:#16345f}
+.danger{background:#ffe7e7;color:#a51f1f}
+.dark .secondary{background:#334155;color:#fff}
+.status{margin-top:12px;padding:10px 12px;border-radius:10px;background:#eef4ff;color:var(--primary2);font-size:14px}
+.dark .status{background:#172554;color:#bfdbfe}
+.voice-controls{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px}
+select{width:100%;min-height:46px;border:1px solid var(--border);border-radius:12px;padding:10px;background:var(--card);color:var(--text)}
+#output{
+ min-height:220px;border:2px solid var(--border);border-radius:14px;padding:14px;
+ background:var(--card);color:var(--text);font-size:18px;line-height:1.55;
+ white-space:pre-wrap;outline:none
+}
+#output:focus{border-color:var(--primary)}
+.unsupported{background:#fff3cd;color:#664d03;border-radius:10px;padding:10px;margin-top:12px;display:none}
+.dark .unsupported{background:#422006;color:#fde68a}
+@media(min-width:700px){
+ .section{padding:30px 20px 50px}
+ .controls{grid-template-columns:repeat(4,1fr)}
+ .voice-controls{grid-template-columns:180px 1fr}
+ textarea{min-height:230px}
+}
+@media(max-width:380px){
+ .menu{grid-template-columns:1fr}
+ .controls{grid-template-columns:1fr}
+ .voice-controls{grid-template-columns:1fr}
+ .section{padding:12px 10px 24px}
+ .card{padding:14px}
+}
+</style>
+</head>
+<body>
+<header>
+  <h2>🎙️ Feo Lasa Soratra</h2>
+  <nav class="menu" aria-label="Navigation">
+    <button id="tabStory1" class="active" onclick="showSection('story1')">🗣️ Texte → Voix</button>
+    <button id="tabStory2" onclick="showSection('story2')">🎤 Voix → Texte</button>
+    <button id="darkButton" onclick="toggleDark()">🌙 Mode sombre</button>
+  </nav>
+</header>
+
+<main>
+<section id="story1" class="section activeSection">
+ <div class="card">
+  <h1>Conversation : texte en parole</h1>
+  <p class="subtitle">Écrivez votre texte puis utilisez les commandes pour le lire, mettre en pause, reprendre ou recommencer.</p>
+  <textarea id="text" placeholder="Soraty eto izay soratra tianao hampitenenina azafady..." aria-label="Texte à lire"></textarea>
+  <div class="controls">
+    <button class="primary" onclick="speak()">🔊 Convertir</button>
+    <button class="secondary" onclick="pauseSpeech()">⏸ Pause</button>
+    <button class="secondary" onclick="resumeSpeech()">▶ Reprendre</button>
+    <button class="danger" onclick="restartSpeech()">🔄 Restart</button>
+  </div>
+  <div id="speechStatus" class="status" role="status">Prêt.</div>
+  <div id="speechUnsupported" class="unsupported">La synthèse vocale n'est pas disponible dans ce navigateur.</div>
+ </div>
+</section>
+
+<section id="story2" class="section">
+ <div class="card">
+  <h1>Famadihana ny feo lasa ho soratra</h1>
+  <p class="subtitle">Appuyez sur Start et parlez. Le texte reconnu sera ajouté dans la zone ci-dessous.</p>
+  <div class="voice-controls">
+    <select id="language" aria-label="Langue de reconnaissance">
+      <option value="fr-FR">Français</option>
+      <option value="mg-MG">Malagasy</option>
+      <option value="en-US">English</option>
+      <option value="hi-IN">Hindi</option>
+    </select>
+    <button id="startButton" class="primary">🎤 Start Voice Input</button>
+  </div>
+  <button id="clearButton" class="danger" style="width:100%;margin-bottom:12px">🗑️ Clear</button>
+  <div id="output" contenteditable="true" role="textbox" aria-multiline="true" spellcheck="true"></div>
+  <div id="recognitionStatus" class="status" role="status">Prêt à écouter.</div>
+  <div id="recognitionUnsupported" class="unsupported">La reconnaissance vocale n'est pas disponible dans ce navigateur. Chrome Android est recommandé.</div>
+ </div>
+</section>
+</main>
+
+<script>
+'use strict';
+
+const speech = window.speechSynthesis;
+let currentUtterance = null;
+
+function setSpeechStatus(message){
+  const el=document.getElementById('speechStatus');
+  if(el) el.textContent=message;
+}
+
+function speak(){
+  const text=document.getElementById('text').value.trim();
+  if(!text){ setSpeechStatus("⚠️ Écrivez d'abord un texte."); return; }
+  if(!speech){ document.getElementById('speechUnsupported').style.display='block'; return; }
+
+  speech.cancel();
+  currentUtterance=new SpeechSynthesisUtterance(text);
+  currentUtterance.lang='fr-FR';
+  currentUtterance.rate=1;
+  currentUtterance.pitch=1;
+
+  currentUtterance.onstart=()=>setSpeechStatus("🔊 Lecture en cours...");
+  currentUtterance.onpause=()=>setSpeechStatus("⏸ Lecture en pause.");
+  currentUtterance.onresume=()=>setSpeechStatus("▶ Lecture reprise.");
+  currentUtterance.onend=()=>setSpeechStatus("✅ Lecture terminée.");
+  currentUtterance.onerror=()=>setSpeechStatus("❌ Une erreur est survenue pendant la lecture.");
+
+  speech.speak(currentUtterance);
+}
+
+function pauseSpeech(){
+  if(!speech) return;
+  if(speech.speaking && !speech.paused){
+    speech.pause(); setSpeechStatus("⏸ Lecture en pause.");
+  }else{
+    setSpeechStatus("ℹ️ Aucune lecture active.");
+  }
+}
+
+function resumeSpeech(){
+  if(!speech) return;
+  if(speech.paused){
+    speech.resume(); setSpeechStatus("▶ Lecture reprise.");
+  }else{
+    setSpeechStatus("ℹ️ La lecture n'est pas en pause.");
+  }
+}
+
+function restartSpeech(){
+  const text=document.getElementById('text').value.trim();
+  if(!text){ setSpeechStatus("⚠️ Aucun texte à recommencer."); return; }
+  if(!speech) return;
+  speech.cancel();
+  setTimeout(speak,100);
+}
+
+function toggleDark(){
+  document.body.classList.toggle('dark');
+  const dark=document.body.classList.contains('dark');
+  document.getElementById('darkButton').textContent=dark?'☀️ Mode clair':'🌙 Mode sombre';
+  try{ localStorage.setItem('darkMode',dark?'1':'0'); }catch(e){}
+}
+try{
+  if(localStorage.getItem('darkMode')==='1'){
+    document.body.classList.add('dark');
+    document.getElementById('darkButton').textContent='☀️ Mode clair';
+  }
+}catch(e){}
+
+function showSection(id){
+  document.querySelectorAll('.section').forEach(sec=>sec.classList.remove('activeSection'));
+  document.getElementById(id).classList.add('activeSection');
+  document.getElementById('tabStory1').classList.toggle('active',id==='story1');
+  document.getElementById('tabStory2').classList.toggle('active',id==='story2');
+}
+
+/* Voice -> Text */
+const startButton=document.getElementById('startButton');
+const clearButton=document.getElementById('clearButton');
+const outputDiv=document.getElementById('output');
+const languageSelect=document.getElementById('language');
+const recognitionStatus=document.getElementById('recognitionStatus');
+const Recognition=window.SpeechRecognition || window.webkitSpeechRecognition;
+let recognition=null;
+let isListening=false;
+
+function setRecognitionStatus(message){ recognitionStatus.textContent=message; }
+
+if(Recognition){
+  recognition=new Recognition();
+  recognition.continuous=true;
+  recognition.interimResults=true;
+  recognition.lang=languageSelect.value;
+
+  recognition.onstart=()=>{
+    isListening=true;
+    startButton.textContent='⏹️ Arrêter';
+    startButton.classList.add('danger');
+    startButton.classList.remove('primary');
+    setRecognitionStatus('🎤 Écoute en cours...');
+  };
+
+  recognition.onresult=(event)=>{
+    let finalText='';
+    let interimText='';
+    for(let i=event.resultIndex;i<event.results.length;i++){
+      const transcript=event.results[i][0].transcript;
+      if(event.results[i].isFinal) finalText+=transcript+' ';
+      else interimText+=transcript;
+    }
+    if(finalText) outputDiv.textContent += finalText;
+    setRecognitionStatus(interimText ? '🎤 '+interimText : '🎤 Écoute en cours...');
+  };
+
+  recognition.onerror=(event)=>{
+    isListening=false;
+    startButton.textContent='🎤 Start Voice Input';
+    startButton.classList.add('primary');
+    startButton.classList.remove('danger');
+    setRecognitionStatus('❌ Erreur : '+(event.error || 'reconnaissance vocale'));
+  };
+
+  recognition.onend=()=>{
+    isListening=false;
+    startButton.textContent='🎤 Start Voice Input';
+    startButton.classList.add('primary');
+    startButton.classList.remove('danger');
+    setRecognitionStatus('Prêt à écouter.');
+  };
+
+  startButton.addEventListener('click',()=>{
+    if(isListening){ recognition.stop(); }
+    else{
+      recognition.lang=languageSelect.value;
+      try{ recognition.start(); }
+      catch(e){ setRecognitionStatus('⚠️ La reconnaissance est déjà en cours.'); }
+    }
+  });
+
+  languageSelect.addEventListener('change',()=>{
+    recognition.lang=languageSelect.value;
+    if(isListening){
+      recognition.stop();
+      setTimeout(()=>{try{recognition.start()}catch(e){}},250);
+    }
+  });
+}else{
+  startButton.disabled=true;
+  document.getElementById('recognitionUnsupported').style.display='block';
+  setRecognitionStatus('⚠️ Reconnaissance vocale non disponible.');
+}
+
+clearButton.addEventListener('click',()=>{
+  outputDiv.textContent='';
+  setRecognitionStatus('🗑️ Texte effacé. Prêt à écouter.');
+});
+
+document.getElementById('text').addEventListener('keydown',e=>{
+  if((e.ctrlKey||e.metaKey)&&e.key==='Enter') speak();
+});
+
+window.addEventListener('beforeunload',()=>{ if(speech) speech.cancel(); });
+</script>
+</body>
+</html>
